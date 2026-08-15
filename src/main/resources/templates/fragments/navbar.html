@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<div th:fragment="navbar(page)">
+
+    <style>
+        .nav-btn { border-radius: 8px; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .nav-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .btn-black-dash { background-color: #121212; color: #ffffff; border: 1px solid #000000; }
+        .btn-black-dash:hover { background-color: #333333; color: #ffffff; }
+        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; background-color: #f8fafc; padding: 6px 12px; outline: none; transition: 0.3s; }
+        .search-box:focus { background-color: #fff; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    </style>
+
+    <nav class="navbar navbar-expand-lg fs-navbar sticky-top py-3 bg-white shadow-sm border-bottom">
+        <div class="container-fluid px-4">
+
+            <button sec:authorize="isAuthenticated()" class="btn btn-light me-3 border shadow-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <a class="navbar-brand fs-brand fs-4 fw-bold text-primary" th:href="@{/}">⚡ FYDP Sync</a>
+
+            <!-- ================= DYNAMIC SEARCH & FILTER BAR ================= -->
+
+            <!-- Dashboard Search & Filter -->
+            <div th:if="${page == 'dashboard'}" class="ms-auto d-none d-md-flex align-items-center gap-3">
+                <input type="text" id="dashboardSearch" class="search-box" placeholder="🔍 Search projects..." style="width: 250px;">
+                <div class="form-check form-switch d-flex align-items-center gap-2 mb-0">
+                    <input class="form-check-input mt-0" type="checkbox" id="myProjectsFilter" style="cursor: pointer;">
+                    <label class="form-check-label small fw-bold text-muted mb-0" for="myProjectsFilter" style="cursor: pointer;">My Projects</label>
+                </div>
+            </div>
+
+            <!-- Project Workspace Search & Filter -->
+            <div th:if="${page == 'project'}" class="ms-auto d-none d-md-flex align-items-center gap-2">
+                <input type="text" id="workspaceSearch" class="search-box" placeholder="🔍 Search workspaces..." style="width: 200px;">
+                <select id="categoryFilter" class="form-select search-box fw-bold text-muted" style="width: 160px; cursor: pointer;">
+                    <option value="ALL">All Categories</option>
+                    <option value="TRAIN_MODEL">Train Model</option>
+                    <option value="LITERATURE_REVIEW">Literature Review</option>
+                    <option value="NOTES">Notes</option>
+                    <option value="LINKS">Links</option>
+                </select>
+            </div>
+
+            <div class="ms-auto d-none d-md-block" th:if="${page != 'dashboard' and page != 'project'}" style="width: 300px;"></div>
+
+            <!-- ================= BUTTONS ================= -->
+            <div class="ms-4 d-flex align-items-center gap-3" sec:authorize="isAnonymous()">
+                <a class="btn btn-outline-dark fw-bold px-4 py-2 nav-btn" th:href="@{/login}">Login</a>
+                <a class="btn btn-primary fw-bold px-4 py-2 nav-btn" th:href="@{/register}">Register</a>
+            </div>
+
+            <div class="ms-4 d-flex align-items-center gap-3" sec:authorize="isAuthenticated()">
+                <a th:if="${page != 'dashboard'}" class="btn btn-black-dash fw-bold px-4 py-2 nav-btn" th:href="@{/student/dashboard}">📊 Dashboard</a>
+                <form th:if="${page != 'project'}" th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-danger fw-bold px-4 py-2 nav-btn">🚪 Logout</button>
+                </form>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- LEFT SLIDER MENU -->
+    <div sec:authorize="isAuthenticated()" class="offcanvas offcanvas-start shadow" tabindex="-1" id="sidebarMenu" style="width: 280px;">
+        <div class="offcanvas-header border-bottom bg-light">
+            <h5 class="offcanvas-title fw-bold text-primary">⚡ Menu</h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column p-4">
+            <div class="mb-4 text-center p-3 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%); border: 1px solid #e2e8f0;">
+                <h1 class="display-6 mb-2">👤</h1>
+                <h6 class="fw-bold text-dark mb-0" sec:authentication="name">Username</h6>
+                <span class="badge bg-success mt-2">Active</span>
+            </div>
+            <ul class="nav flex-column gap-2 mb-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-dark fw-bold px-3 py-2 rounded-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0; transition: 0.2s;" th:href="@{/student/dashboard}">📊 Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark fw-bold px-3 py-2 rounded-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0; transition: 0.2s;" th:href="@{/profile}">⚙️ My Profile</a>
+                </li>
+            </ul>
+            <hr class="my-4 text-muted">
+            <div class="mt-auto">
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2 nav-btn">🚪 Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

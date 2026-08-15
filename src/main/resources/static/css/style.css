@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* Modern light gray background */
+}
+
+/* Interactive Navbar */
+.fs-navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e5e7eb;
+}
+.fs-brand {
+    font-weight: 700;
+    color: #4f46e5 !important; /* Premium Indigo */
+    letter-spacing: -0.5px;
+    transition: transform 0.3s ease;
+}
+.fs-brand:hover {
+    transform: scale(1.05);
+}
+
+/* Auth Cards with Hover Effect */
+.auth-card {
+    border: none;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.auth-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Form Inputs */
+.form-control {
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+.form-control:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+/* Primary Button */
+.btn-primary {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    background-color: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+}
+
+/* Interactive Role Radio Buttons */
+.role-group {
+    display: flex;
+    gap: 15px;
+}
+.role-option {
+    flex: 1;
+}
+.role-option input[type="radio"] {
+    display: none; /* Asol radio hide kora */
+}
+.role-option label {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.3s ease;
+}
+.role-option input[type="radio"]:checked + label {
+    border-color: #4f46e5;
+    background-color: #eef2ff;
+    color: #4f46e5;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}

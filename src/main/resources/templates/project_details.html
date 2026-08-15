@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Workspace - FYDP Sync</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        .dashed-card { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
+        .dashed-card:hover { border-color: #4f46e5; background-color: #f8fafc; }
+        .module-card { border-left: 4px solid #4f46e5; background: #f8fafc; transition: 0.3s; border-radius: 8px !important; border: 1px solid #e2e8f0; }
+        .module-card:hover { background: #eef2ff; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar(page='project')}"></div>
+
+<div class="container my-5 pt-2">
+
+    <!-- TOP HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-4 bg-white shadow-sm rounded-4 border">
+        <div>
+            <h3 class="fw-bold text-dark mb-1" th:text="${project.title}">Project Title</h3>
+            <small class="text-muted fw-medium">Total Members: <span th:text="${project.members.size()}">0</span></small>
+        </div>
+
+        <!-- Add Member -->
+        <div th:if="${hasPrivilege}" class="position-relative">
+            <form th:action="@{/projects/{id}/add-member(id=${project.id})}" method="post" class="d-flex gap-2">
+                <input type="text" id="usernameInput" name="username" class="form-control" placeholder="Member Username..." th:value="${failedUsername}" required>
+                <button type="submit" class="btn btn-dark fw-bold px-4 text-nowrap">Add Member</button>
+            </form>
+
+            <div id="successAlert" th:if="${successMessage}" class="alert alert-success py-1 px-3 mt-2 mb-0 small fw-bold text-center position-absolute w-100 shadow-sm" style="z-index: 10;">
+                <span th:text="${successMessage}"></span>
+            </div>
+
+            <div id="errorAlert" th:if="${errorMessage}" class="alert alert-danger py-1 px-3 mt-2 mb-0 small fw-bold text-center position-absolute w-100 shadow-sm" style="z-index: 10;">
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row gap-4 justify-content-center">
+
+        <!-- LEFT SIDEBAR -->
+        <div class="col-lg-4 col-md-5 mb-4">
+            <div class="card auth-card p-4 shadow-sm dashed-card">
+                <h5 class="fw-bold text-dark mb-3">➕ Add Workspace</h5>
+                <form th:action="@{/projects/{id}/add-workspace(id=${project.id})}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Workspace Name</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. YOLOv8 Setup" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Category</label>
+                        <select name="category" class="form-select fw-bold" required>
+                            <option value="TRAIN_MODEL">Train Model</option>
+                            <option value="LITERATURE_REVIEW">Literature Review</option>
+                            <option value="NOTES">Notes</option>
+                            <!-- 🔥 LINKS Category Added -->
+                            <option value="LINKS">Links</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Create Workspace</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT AREA -->
+        <div class="col-lg-7 col-md-6">
+            <h4 class="fw-bold text-dark mb-4">📂 Workspaces</h4>
+
+            <div class="row mb-5" id="workspaceContainer">
+                <div class="col-12 mb-3 workspace-item-col" th:each="ws : ${project.workspaces}">
+                    <div class="card module-card p-3 shadow-sm h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0 text-dark workspace-title" th:text="${ws.title}">Workspace Title</h5>
+                            <span class="badge bg-secondary text-light px-3 py-1 workspace-category" th:text="${ws.category}">CATEGORY</span>
+                        </div>
+                        <small class="text-muted mt-2" th:text="'Added on: ' + ${#temporals.format(ws.createdAt, 'dd MMM yyyy')}">Date</small>
+                    </div>
+                </div>
+
+                <div id="emptyWorkspaceState" class="col-12 text-center py-4 bg-white rounded-4 border" style="display: none;">
+                    <h1 class="display-4 text-muted">🔍</h1>
+                    <p class="text-muted fw-bold mt-2">No workspaces match your search or filter.</p>
+                </div>
+
+                <div th:if="${#lists.isEmpty(project.workspaces)}" class="col-12 text-center py-4 bg-white rounded-4 border default-empty">
+                    <h1 class="display-4 text-muted">📂</h1>
+                    <p class="text-muted fw-bold mt-2">No workspaces added yet. Create one from the left panel!</p>
+                </div>
+            </div>
+
+            <!-- Project Members Section -->
+            <div class="card auth-card p-4 shadow-sm mt-4">
+                <h5 class="fw-bold text-dark mb-3">👥 Project Members</h5>
+                <div class="list-group list-group-flush">
+                    <div th:each="member : ${project.members}" class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark" th:text="${member.user.name}">Member Name</h6>
+                            <small class="text-muted" th:text="'@' + ${member.user.username}">username</small>
+                        </div>
+                        <span class="badge px-3 py-2"
+                              th:classappend="${member.role.name() == 'CREATOR'} ? 'bg-danger' : (${member.user.role.name() == 'SUPERVISOR'} ? 'bg-success' : 'bg-primary')"
+                              th:text="${member.role.name() == 'CREATOR'} ? 'CREATOR' : (${member.user.role.name() == 'SUPERVISOR'} ? 'SUPERVISOR' : 'MEMBER')">
+                                  ROLE
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Alert logic
+    setTimeout(function() {
+        let successAlert = document.getElementById('successAlert');
+        if (successAlert) {
+            successAlert.style.transition = "opacity 0.5s ease";
+            successAlert.style.opacity = "0";
+            setTimeout(() => successAlert.remove(), 500);
+        }
+    }, 3000);
+
+    const usernameInput = document.getElementById('usernameInput');
+    const errorAlert = document.getElementById('errorAlert');
+    if (usernameInput && errorAlert) {
+        usernameInput.addEventListener('input', function() {
+            errorAlert.style.transition = "opacity 0.3s ease";
+            errorAlert.style.opacity = "0";
+            setTimeout(() => errorAlert.style.display = 'none', 300);
+        });
+    }
+
+    // 🔥 Live Search & Filter Logic
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("workspaceSearch");
+        const categoryFilter = document.getElementById("categoryFilter");
+        const workspaceCols = document.querySelectorAll(".workspace-item-col");
+        const emptyState = document.getElementById("emptyWorkspaceState");
+        const defaultEmpty = document.querySelector(".default-empty");
+
+        function filterWorkspaces() {
+            let hasVisibleWorkspace = false;
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+            const selectedCategory = categoryFilter ? categoryFilter.value : "ALL";
+
+            workspaceCols.forEach(col => {
+                const titleText = col.querySelector(".workspace-title").innerText.toLowerCase();
+                const categoryBadge = col.querySelector(".workspace-category").innerText.trim();
+
+                const matchesSearch = titleText.includes(searchTerm);
+                const matchesFilter = selectedCategory === "ALL" || categoryBadge === selectedCategory;
+
+                if (matchesSearch && matchesFilter) {
+                    col.style.display = "";
+                    hasVisibleWorkspace = true;
+                } else {
+                    col.style.display = "none";
+                }
+            });
+
+            if (emptyState && !defaultEmpty) {
+                emptyState.style.display = (hasVisibleWorkspace || workspaceCols.length === 0) ? "none" : "block";
+            }
+        }
+
+        if(searchInput) searchInput.addEventListener("input", filterWorkspaces);
+        if(categoryFilter) categoryFilter.addEventListener("change", filterWorkspaces);
+    });
+</script>
+</body>
+</html>

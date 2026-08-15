@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - FYDP Sync</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+
+  <style>
+    .dashed-card { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
+    .dashed-card:hover { border-color: #4f46e5; background-color: #f8fafc; }
+    .project-list-item {
+      border-left: 4px solid transparent; transition: all 0.2s ease;
+      background-color: #f8fafc; margin-bottom: 12px;
+      border-radius: 8px !important; border: 1px solid #e2e8f0; text-decoration: none;
+    }
+    .project-list-item:hover { border-left: 4px solid #4f46e5; background-color: #eef2ff; }
+  </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar(page='dashboard')}"></div>
+
+<div class="container my-5 pt-2">
+
+  <div class="row gap-4 justify-content-center">
+    <div class="col-lg-4 col-md-5 mb-4">
+      <div class="card auth-card p-4 mb-4 shadow-sm dashed-card">
+        <h5 class="fw-bold text-dark mb-3">➕ New Project</h5>
+        <form th:action="@{/projects/create}" method="post">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">Project Title</label>
+            <input type="text" name="title" class="form-control" placeholder="Enter project name..." required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold">Create Project</button>
+        </form>
+      </div>
+
+      <div class="card auth-card p-4 text-center shadow-sm position-relative hover-lift">
+        <h1 class="display-5 mb-2">👤</h1>
+        <h5 class="fw-bold text-dark">My Profile</h5>
+        <p class="text-muted small mb-0">Update your academic details</p>
+        <a th:href="@{/profile}" class="stretched-link"></a>
+      </div>
+    </div>
+
+    <div class="col-lg-7 col-md-7">
+      <div class="card auth-card p-4 mb-4 shadow-sm" style="background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%); border-left: 5px solid #4f46e5;">
+        <h2 class="fw-bold text-dark mb-1">Welcome, <span th:text="${currentUser.name}">Name</span>! 👋</h2>
+
+        <div sec:authorize="hasRole('STUDENT')" class="mt-2">
+          <span class="badge fs-6 px-3 py-2" style="background-color: #4f46e5;">👨‍🎓 Designation: Student</span>
+        </div>
+        <div sec:authorize="hasRole('SUPERVISOR')" class="mt-2">
+          <span class="badge bg-success fs-6 px-3 py-2">👨‍🏫 Designation: Supervisor</span>
+        </div>
+      </div>
+
+      <div class="card auth-card p-4 shadow-sm">
+        <h4 class="fw-bold text-dark mb-4">📁 My Connected Projects</h4>
+
+        <div class="list-group list-group-flush" id="projectContainer" th:if="${projects != null and !#lists.isEmpty(projects)}">
+          <a th:each="project : ${projects}"
+             th:href="@{/projects/{id}(id=${project.id})}"
+             class="list-group-item list-group-item-action project-list-item p-3">
+            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+              <h6 class="mb-0 fw-bold text-dark project-title" th:text="${project.title}">Project Title</h6>
+              <span class="badge bg-primary rounded-pill px-3">View</span>
+            </div>
+            <small class="text-muted fw-medium project-creator" th:text="'Creator: ' + ${project.creatorName}">Creator</small>
+          </a>
+        </div>
+
+        <div id="emptyState" class="text-center py-5" style="display: none;">
+          <h1 class="display-3 text-muted">🔍</h1>
+          <p class="text-muted fw-bold mt-2">No projects match your search.</p>
+        </div>
+
+        <div th:if="${projects == null or #lists.isEmpty(projects)}" class="text-center py-5">
+          <h1 class="display-3 text-muted">📂</h1>
+          <p class="text-muted fw-bold mt-2">No projects found. Create one from the left panel!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 🔥 Live Search & Filter JS -->
+<script th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("dashboardSearch");
+    const myProjectsFilter = document.getElementById("myProjectsFilter");
+    const projectItems = document.querySelectorAll(".project-list-item");
+    const emptyState = document.getElementById("emptyState");
+
+    /* Get Current User Name from Thymeleaf safely */
+    const currentUserName = /*[[${currentUser.name}]]*/ 'Unknown';
+
+    function filterProjects() {
+      let hasVisibleProject = false;
+      const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+      const showOnlyMine = myProjectsFilter ? myProjectsFilter.checked : false;
+
+      projectItems.forEach(item => {
+        const titleText = item.querySelector(".project-title").innerText.toLowerCase();
+        const creatorText = item.querySelector(".project-creator").innerText;
+
+        const matchesSearch = titleText.includes(searchTerm);
+        // Check if the current user is the creator
+        const matchesFilter = showOnlyMine ? creatorText.includes(currentUserName) : true;
+
+        if (matchesSearch && matchesFilter) {
+          item.style.display = "";
+          hasVisibleProject = true;
+        } else {
+          item.style.display = "none";
+        }
+      });
+
+      // Show/hide empty state if no projects match
+      if(emptyState) {
+        emptyState.style.display = (hasVisibleProject || projectItems.length === 0) ? "none" : "block";
+      }
+    }
+
+    if(searchInput) searchInput.addEventListener("input", filterProjects);
+    if(myProjectsFilter) myProjectsFilter.addEventListener("change", filterProjects);
+  });
+</script>
+
+</body>
+</html>
