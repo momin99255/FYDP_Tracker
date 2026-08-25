@@ -1,6 +1,8 @@
 package com.momin.fydp_sync.service;
 
 import com.momin.fydp_sync.model.User;
+import com.momin.fydp_sync.model.UserProfile;
+import com.momin.fydp_sync.repository.UserProfileRepository;
 import com.momin.fydp_sync.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User registerUser(User user) {
@@ -28,5 +31,20 @@ public class UserService {
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    public UserProfile getOrCreateProfile(User user) {
+        return userProfileRepository.findByUser(user)
+                .orElseGet(() -> {
+                    UserProfile profile = new UserProfile();
+                    profile.setUser(user);
+                    return userProfileRepository.save(profile);
+                });
+    }
+
+    public String getProfilePictureUrl(User user) {
+        return userProfileRepository.findByUser(user)
+                .map(UserProfile::getProfilePicture)
+                .orElse(null);
     }
 }

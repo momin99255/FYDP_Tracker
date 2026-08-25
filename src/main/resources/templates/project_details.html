@@ -12,6 +12,9 @@
         .dashed-card:hover { border-color: #4f46e5; background-color: #f8fafc; }
         .module-card { border-left: 4px solid #4f46e5; background: #f8fafc; transition: 0.3s; border-radius: 8px !important; border: 1px solid #e2e8f0; }
         .module-card:hover { background: #eef2ff; transform: translateY(-2px); }
+        /* 🔥 member row-o clickable feel dewar jonno */
+        .member-row { transition: background-color 0.15s ease; border-radius: 8px; }
+        .member-row:hover { background-color: #f8fafc; }
     </style>
 </head>
 <body>
@@ -75,14 +78,17 @@
             <h4 class="fw-bold text-dark mb-4">📂 Workspaces</h4>
 
             <div class="row mb-5" id="workspaceContainer">
+                <!-- 🔥 Notun: gota card-take link banano holo -->
                 <div class="col-12 mb-3 workspace-item-col" th:each="ws : ${project.workspaces}">
-                    <div class="card module-card p-3 shadow-sm h-100">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="fw-bold mb-0 text-dark workspace-title" th:text="${ws.title}">Workspace Title</h5>
-                            <span class="badge bg-secondary text-light px-3 py-1 workspace-category" th:text="${ws.category}">CATEGORY</span>
+                    <a th:href="@{/workspaces/{id}(id=${ws.id})}" class="text-decoration-none text-reset d-block">
+                        <div class="card module-card p-3 shadow-sm h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0 text-dark workspace-title" th:text="${ws.title}">Workspace Title</h5>
+                                <span class="badge bg-secondary text-light px-3 py-1 workspace-category" th:text="${ws.category}">CATEGORY</span>
+                            </div>
+                            <small class="text-muted mt-2" th:text="'Added on: ' + ${#temporals.format(ws.createdAt, 'dd MMM yyyy')}">Date</small>
                         </div>
-                        <small class="text-muted mt-2" th:text="'Added on: ' + ${#temporals.format(ws.createdAt, 'dd MMM yyyy')}">Date</small>
-                    </div>
+                    </a>
                 </div>
 
                 <div id="emptyWorkspaceState" class="col-12 text-center py-4 bg-white rounded-4 border" style="display: none;">
@@ -100,11 +106,24 @@
             <div class="card auth-card p-4 shadow-sm mt-4">
                 <h5 class="fw-bold text-dark mb-3">👥 Project Members</h5>
                 <div class="list-group list-group-flush">
-                    <div th:each="member : ${project.members}" class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
-                        <div>
-                            <h6 class="mb-0 fw-bold text-dark" th:text="${member.user.name}">Member Name</h6>
-                            <small class="text-muted" th:text="'@' + ${member.user.username}">username</small>
-                        </div>
+                    <div th:each="member : ${project.members}"
+                         th:with="memberPic=${@userService.getProfilePictureUrl(member.user)}"
+                         class="list-group-item member-row px-2 py-3 d-flex justify-content-between align-items-center border-bottom">
+
+                        <!-- 🔥 Notun: avatar + naam ekta link, click korle profile page-e jabe -->
+                        <a th:href="@{/profile/{username}(username=${member.user.username})}"
+                           class="d-flex align-items-center gap-3 text-decoration-none text-reset flex-grow-1">
+                            <img th:if="${memberPic}" th:src="@{${memberPic}}" alt="avatar"
+                                 style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #eef2ff;">
+                            <div th:unless="${memberPic}"
+                                 class="d-flex align-items-center justify-content-center"
+                                 style="width:40px;height:40px;border-radius:50%;background:#eef2ff;font-size:1.1rem;">👤</div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark" th:text="${member.user.name}">Member Name</h6>
+                                <small class="text-muted" th:text="'@' + ${member.user.username}">username</small>
+                            </div>
+                        </a>
+
                         <span class="badge px-3 py-2"
                               th:classappend="${member.role.name() == 'CREATOR'} ? 'bg-danger' : (${member.user.role.name() == 'SUPERVISOR'} ? 'bg-success' : 'bg-primary')"
                               th:text="${member.role.name() == 'CREATOR'} ? 'CREATOR' : (${member.user.role.name() == 'SUPERVISOR'} ? 'SUPERVISOR' : 'MEMBER')">

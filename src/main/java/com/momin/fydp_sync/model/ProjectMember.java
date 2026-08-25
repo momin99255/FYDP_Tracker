@@ -20,11 +20,11 @@ public class ProjectMember {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private User user;
 
-    // Enum jate database-e string hishebe save hoy (MEMBER, CREATOR)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectRole role;

@@ -1,0 +1,11 @@
+package com.momin.fydp_sync.repository;
+
+import com.momin.fydp_sync.model.User;
+import com.momin.fydp_sync.model.UserProfile;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
+    Optional<UserProfile> findByUser(User user);
+}
