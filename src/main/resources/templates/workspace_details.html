@@ -5,28 +5,199 @@
     <title th:text="${workspace.title} + ' - FYDP Sync'">Workspace - FYDP Sync</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .row-clickable { cursor: pointer; }
+        .row-clickable:hover { background-color: #f8fafc; }
+        .add-entry-scroll { max-height: 50vh; overflow-y: auto; padding-right: 6px; }
+        .add-entry-scroll::-webkit-scrollbar { width: 6px; }
+        .add-entry-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+        .sticky-panel { position: sticky; top: 90px; }
+        .add-column-box {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 10px 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    </style>
 </head>
 <body>
 
 <div th:replace="~{fragments/navbar :: navbar(page='project')}"></div>
 
-<div class="container my-5 pt-2">
-    <a th:href="@{/projects/{id}(id=${workspace.project.id})}" class="text-decoration-none fw-bold text-muted small">&larr; Back to project</a>
+<div class="container-fluid px-4 mt-3 mb-5">
 
-    <div class="card auth-card p-4 shadow-sm mt-3">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <h3 class="fw-bold text-dark mb-0" th:text="${workspace.title}">Workspace Title</h3>
+    <!-- ================= TOP HEADER: add column | title | go to project ================= -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+        <!-- Left Side: Add Column Form -->
+        <form th:if="${isTableType and hasPrivilege}" th:action="@{/workspaces/{id}/add-column(id=${workspace.id})}" method="post" class="add-column-box d-flex align-items-end gap-2">
+            <div>
+                <label class="form-label small fw-bold text-muted mb-1">New Column</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Recall" required style="width:200px;">
+            </div>
+            <button type="submit" class="btn btn-dark fw-bold px-4">➕ Add Column</button>
+        </form>
+        <!-- spacer so the header stays balanced when there's no add-column form -->
+        <div th:unless="${isTableType and hasPrivilege}" style="width:1px;"></div>
+
+        <!-- Center: Title and Category -->
+        <div class="text-center">
+            <h3 class="fw-bold text-dark mb-1" th:text="${workspace.title}">Workspace Title</h3>
             <span class="badge bg-secondary px-3 py-2" th:text="${workspace.category}">CATEGORY</span>
         </div>
-        <p class="text-muted small mb-4" th:text="'Added on: ' + ${#temporals.format(workspace.createdAt, 'dd MMM yyyy')}">Date</p>
 
-        <!-- 🔥 TODO: ei jaygay porobortite actual workspace content (notes, files, links,
-             model training log etc.) category onujayi build kora hobe -->
-        <div class="text-center py-5 text-muted">
-            <h1 class="display-4">🚧</h1>
-            <p class="fw-bold mt-2">This workspace page is under construction.</p>
-        </div>
+        <!-- Right Side: Go to Project Button -->
+        <a th:href="@{/projects/{id}(id=${workspace.project.id})}" class="btn btn-black-dash nav-btn fw-bold px-4 py-2">Go to Project &rarr;</a>
+
     </div>
+    <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger shadow-sm" th:text="${errorMessage}"></div>
+
+    <!-- ======================================================= -->
+    <!-- TABLE TYPE: TRAIN_MODEL / LITERATURE_REVIEW             -->
+    <!-- ======================================================= -->
+    <div th:if="${isTableType}">
+
+        <div th:if="${#lists.isEmpty(columns)}" class="alert alert-secondary">
+            No columns yet.
+            <span th:if="${hasPrivilege}">Add one from the button above to start tracking.</span>
+            <span th:unless="${hasPrivilege}">Ask the project creator or a supervisor to add one.</span>
+        </div>
+
+        <div class="row g-4" th:if="${!#lists.isEmpty(columns)}">
+
+            <!-- LEFT: Add Value panel -->
+            <div class="col-lg-3">
+                <div class="card auth-card p-3 shadow-sm sticky-panel">
+                    <h6 class="fw-bold text-dark mb-3">➕ Add New Entry</h6>
+                    <form th:action="@{/workspaces/{id}/add-row(id=${workspace.id})}" method="post">
+                        <div class="add-entry-scroll">
+                            <div class="mb-3" th:each="col : ${columns}">
+                                <label class="form-label small fw-bold text-muted" th:text="${col.name}">Column</label>
+                                <input type="text" th:name="'cell_' + ${col.id}" class="form-control">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary fw-bold w-100 mt-3">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RIGHT: entries table -->
+            <div class="col-lg-9">
+                <div class="table-responsive bg-white shadow-sm rounded-3">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                        <tr>
+                            <th th:each="col : ${columns}" th:text="${col.name}" class="py-3">Column</th>
+                            <th class="py-3">Added By</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}"
+                            th:with="isOwner=${row.addedBy.username == currentUser.username}"
+                            th:classappend="${isOwner} ? 'row-clickable' : ''"
+                            th:attr="data-bs-toggle=${isOwner} ? 'modal' : null, data-bs-target=${isOwner} ? '#editRow' + ${row.id} : null">
+                            <td th:each="col : ${columns}" th:text="${row.getValueForColumn(col.id)}"></td>
+                            <td><span class="badge bg-secondary" th:text="${row.addedBy.name}">Name</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rows)}">
+                            <td th:attr="colspan=${#lists.size(columns) + 1}" class="text-center text-muted py-4">No entries yet. Add the first one from the left panel!</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit modals - shudhu nijer add kora row-er jonno render hobe -->
+        <th:block th:each="row : ${rows}" th:if="${row.addedBy.username == currentUser.username}">
+            <div class="modal fade" th:id="'editRow' + ${row.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Entry</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form th:id="'updateForm' + ${row.id}" th:action="@{/workspaces/{wid}/rows/{rid}/update(wid=${workspace.id},rid=${row.id})}" method="post">
+                            <div class="modal-body">
+                                <div class="mb-3" th:each="col : ${columns}">
+                                    <label class="form-label fw-bold small text-muted" th:text="${col.name}">Column</label>
+                                    <input type="text" th:name="'cell_' + ${col.id}" class="form-control" th:value="${row.getValueForColumn(col.id)}">
+                                </div>
+                            </div>
+                        </form>
+                        <div class="modal-footer d-flex justify-content-between">
+                            <form th:action="@{/workspaces/{wid}/rows/{rid}/delete(wid=${workspace.id},rid=${row.id})}" method="post" onsubmit="return confirm('Delete this entry?');" class="m-0">
+                                <button type="submit" class="btn btn-outline-danger">🗑️ Delete</button>
+                            </form>
+                            <button type="submit" th:attr="form='updateForm' + ${row.id}" class="btn btn-primary fw-bold">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- SIMPLE LIST TYPE: NOTES / LINKS                          -->
+    <!-- ======================================================= -->
+    <div th:unless="${isTableType}">
+
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="card auth-card p-3 shadow-sm sticky-panel">
+                    <h6 class="fw-bold text-dark mb-3" th:text="${workspace.category.name() == 'LINKS'} ? '➕ Add Link' : '➕ Add Note'">➕ Add Entry</h6>
+                    <form th:action="@{/workspaces/{id}/add-row(id=${workspace.id})}" method="post">
+                        <textarea name="content" class="form-control mb-3" rows="3"
+                                  th:placeholder="${workspace.category.name() == 'LINKS'} ? 'https://...' : 'Write a note...'" required></textarea>
+                        <button type="submit" class="btn btn-primary fw-bold w-100">Add</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div th:if="${#lists.isEmpty(rows)}" class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
+                    <h1 class="display-4">📝</h1>
+                    <p class="fw-bold mt-2">Nothing added yet.</p>
+                </div>
+
+                <div class="list-group">
+                    <div th:each="row : ${rows}"
+                         th:with="isOwner=${row.addedBy.username == currentUser.username}"
+                         th:classappend="${isOwner} ? 'row-clickable' : ''"
+                         th:attr="data-bs-toggle=${isOwner} ? 'modal' : null, data-bs-target=${isOwner} ? '#editRow' + ${row.id} : null"
+                         class="list-group-item p-3 mb-2 border rounded-3">
+                        <p class="mb-1" th:text="${row.content}">Content</p>
+                        <small class="text-muted">Added by <span th:text="${row.addedBy.name}">Name</span> ·
+                            <span th:text="${#temporals.format(row.createdAt, 'dd MMM yyyy')}">Date</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <th:block th:each="row : ${rows}" th:if="${row.addedBy.username == currentUser.username}">
+            <div class="modal fade" th:id="'editRow' + ${row.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Entry</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form th:id="'updateForm' + ${row.id}" th:action="@{/workspaces/{wid}/rows/{rid}/update(wid=${workspace.id},rid=${row.id})}" method="post">
+                            <div class="modal-body">
+                                <textarea name="content" class="form-control" rows="3" th:text="${row.content}"></textarea>
+                            </div>
+                        </form>
+                        <div class="modal-footer d-flex justify-content-between">
+                            <form th:action="@{/workspaces/{wid}/rows/{rid}/delete(wid=${workspace.id},rid=${row.id})}" method="post" onsubmit="return confirm('Delete this entry?');" class="m-0">
+                                <button type="submit" class="btn btn-outline-danger">🗑️ Delete</button>
+                            </form>
+                            <button type="submit" th:attr="form='updateForm' + ${row.id}" class="btn btn-primary fw-bold">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
