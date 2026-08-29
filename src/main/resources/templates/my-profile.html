@@ -15,12 +15,15 @@
     <div class="row justify-content-center">
         <div class="col-lg-6">
 
+            <div class="d-flex justify-content-end mb-3">
+                <a href="javascript:history.back()" class="btn btn-black-dash nav-btn fw-bold px-4 py-2">&larr; Back</a>
+            </div>
+
             <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
 
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
 
-                    <!-- Current picture (or placeholder initial) -->
                     <div class="text-center mb-4">
                         <img th:if="${profile.profilePicture}" th:src="@{${profile.profilePicture}}" alt="Profile"
                              style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid #eef2ff;">
@@ -36,7 +39,6 @@
                         </div>
                     </div>
 
-                    <!-- ============ VIEW MODE (own or someone else's) ============ -->
                     <div th:unless="${editMode}">
                         <table class="table table-borderless mb-4">
                             <tbody>
@@ -52,18 +54,20 @@
                                 <td class="fw-bold text-muted">Department</td>
                                 <td th:text="${profile.department} ?: '— not set —'">—</td>
                             </tr>
-                            <tr>
+                            <tr th:if="${currentUser.role.name() == 'STUDENT'}">
                                 <td class="fw-bold text-muted">Batch</td>
                                 <td th:text="${profile.batch} ?: '— not set —'">—</td>
+                            </tr>
+                            <tr th:if="${currentUser.role.name() == 'SUPERVISOR'}">
+                                <td class="fw-bold text-muted">Designation</td>
+                                <td th:text="${profile.designation != null ? profile.designation.label : '— not set —'}">—</td>
                             </tr>
                             </tbody>
                         </table>
 
-                        <!-- 🔥 Edit button shudhu nijer profile hole dekhabe -->
                         <a th:if="${isOwnProfile}" th:href="@{/profile/edit}" class="btn btn-primary fw-bold w-100">✏️ Edit Profile</a>
                     </div>
 
-                    <!-- ============ EDIT MODE (shudhu nijer profile-e ashte pare) ============ -->
                     <form th:if="${editMode and isOwnProfile}" th:action="@{/profile/update}" method="post" enctype="multipart/form-data">
 
                         <div class="mb-3">
@@ -89,10 +93,21 @@
                                    th:value="${profile.department}" placeholder="e.g. CSE">
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-4" th:if="${currentUser.role.name() == 'STUDENT'}">
                             <label class="form-label fw-bold">Batch</label>
                             <input type="text" name="batch" class="form-control"
                                    th:value="${profile.batch}" placeholder="e.g. 51">
+                        </div>
+
+                        <div class="mb-4" th:if="${currentUser.role.name() == 'SUPERVISOR'}">
+                            <label class="form-label fw-bold">Designation</label>
+                            <select name="designation" class="form-select">
+                                <option value="">Select designation...</option>
+                                <option th:each="d : ${T(com.momin.fydp_sync.enums.Designation).values()}"
+                                        th:value="${d}"
+                                        th:text="${d.label}"
+                                        th:selected="${profile.designation == d}"></option>
+                            </select>
                         </div>
 
                         <div class="d-flex gap-2">

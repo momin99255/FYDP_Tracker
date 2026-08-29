@@ -2,6 +2,7 @@ package com.momin.fydp_sync.controller;
 
 import com.momin.fydp_sync.entity.User;
 import com.momin.fydp_sync.entity.UserProfile;
+import com.momin.fydp_sync.enums.Designation;
 import com.momin.fydp_sync.repository.UserProfileRepository;
 import com.momin.fydp_sync.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,6 @@ public class ProfileController {
 
     private static final String UPLOAD_DIR = "uploads/profile-pics/";
 
-    // Nijer profile - view mode
     @GetMapping
     public String viewProfile(Model model, Principal principal) {
         User currentUser = userService.getUserByUsername(principal.getName());
@@ -43,7 +43,6 @@ public class ProfileController {
         return "my-profile";
     }
 
-    // Nijer profile - edit mode
     @GetMapping("/edit")
     public String editProfile(Model model, Principal principal) {
         User currentUser = userService.getUserByUsername(principal.getName());
@@ -70,7 +69,7 @@ public class ProfileController {
         }
         UserProfile profile = userService.getOrCreateProfile(targetUser);
 
-        model.addAttribute("currentUser", targetUser); // template-e "the profile being shown" hisebe use hocche
+        model.addAttribute("currentUser", targetUser);
         model.addAttribute("profile", profile);
         model.addAttribute("editMode", false);
         model.addAttribute("isOwnProfile", false);
@@ -84,6 +83,7 @@ public class ProfileController {
                                 @RequestParam(value = "university", required = false) String university,
                                 @RequestParam(value = "department", required = false) String department,
                                 @RequestParam(value = "batch", required = false) String batch,
+                                @RequestParam(value = "designation", required = false) Designation designation,
                                 Principal principal,
                                 RedirectAttributes redirectAttributes) throws IOException {
 
@@ -94,6 +94,7 @@ public class ProfileController {
         profile.setUniversity(university);
         profile.setDepartment(department);
         profile.setBatch(batch);
+        profile.setDesignation(designation);
 
         if (file != null && !file.isEmpty()) {
             Path uploadPath = Paths.get(UPLOAD_DIR);

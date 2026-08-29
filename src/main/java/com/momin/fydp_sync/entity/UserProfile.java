@@ -1,5 +1,6 @@
 package com.momin.fydp_sync.entity;
 
+import com.momin.fydp_sync.enums.Designation;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,4 +26,7 @@ public class UserProfile {
     private String university;
     private String department;
     private String batch;
+
+    @Enumerated(EnumType.STRING)
+    private Designation designation;
 }
