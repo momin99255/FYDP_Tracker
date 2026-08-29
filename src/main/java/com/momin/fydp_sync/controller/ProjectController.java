@@ -1,6 +1,11 @@
 package com.momin.fydp_sync.controller;
 
-import com.momin.fydp_sync.model.*;
+import com.momin.fydp_sync.entity.Project;
+import com.momin.fydp_sync.entity.ProjectMember;
+import com.momin.fydp_sync.entity.User;
+import com.momin.fydp_sync.entity.Workspace;
+import com.momin.fydp_sync.enums.ProjectRole;
+import com.momin.fydp_sync.enums.WorkspaceCategory;
 import com.momin.fydp_sync.repository.ProjectMemberRepository;
 import com.momin.fydp_sync.repository.ProjectRepository;
 import com.momin.fydp_sync.repository.WorkspaceRepository;
@@ -19,7 +24,7 @@ public class ProjectController {
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    private final WorkspaceRepository workspaceRepository; // 🔥 Workspace save korar jonno add kora holo
+    private final WorkspaceRepository workspaceRepository;
     private final UserService userService;
 
     @PostMapping("/create")
@@ -27,12 +32,10 @@ public class ProjectController {
         String username = principal.getName();
         User currentUser = userService.getUserByUsername(username);
 
-        // 1. Prothome project save kore ID niye asha
         Project newProject = new Project();
         newProject.setTitle(title);
         Project savedProject = projectRepository.save(newProject);
 
-        // 2. Creator ke explicitly member table-e save kora
         ProjectMember creatorMember = new ProjectMember();
         creatorMember.setUser(currentUser);
         creatorMember.setProject(savedProject);
@@ -72,7 +75,6 @@ public class ProjectController {
         Project project = projectRepository.findById(projectId).orElseThrow();
         User userToAdd = userService.getUserByUsername(username);
 
-        // Jodi user database-e na thake
         if (userToAdd == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "User does not exist");
             redirectAttributes.addFlashAttribute("failedUsername", username); // Input theke jate muche na jay
@@ -98,7 +100,7 @@ public class ProjectController {
         return "redirect:/projects/" + projectId;
     }
 
-    // 🔥 Add Workspace Feature (Aager code-er sathe match kore add kora holo)
+    // 🔥 Add Workspace Feature
     @PostMapping("/{id}/add-workspace")
     public String addWorkspace(@PathVariable("id") Long projectId,
                                @RequestParam("title") String title,

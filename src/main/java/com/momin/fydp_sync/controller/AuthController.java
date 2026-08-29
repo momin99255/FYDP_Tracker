@@ -1,9 +1,8 @@
 package com.momin.fydp_sync.controller;
 
 import com.momin.fydp_sync.dto.RegisterRequest;
-import com.momin.fydp_sync.model.Project;
-import com.momin.fydp_sync.model.Role;
-import com.momin.fydp_sync.model.User;
+import com.momin.fydp_sync.enums.Role;
+import com.momin.fydp_sync.entity.User;
 import com.momin.fydp_sync.repository.ProjectRepository;
 import com.momin.fydp_sync.service.UserService;
 import jakarta.validation.Valid;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.security.Principal;
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -36,14 +34,12 @@ public class AuthController {
         return "login";
     }
 
-    // 🔥 DTO update: Khali DTO pathano hocche
     @GetMapping("/register")
     public String registerPage(Model model) {
         model.addAttribute("user", new RegisterRequest("", "", "", "", "STUDENT"));
         return "register";
     }
 
-    // 🔥 DTO update: User er bodole RegisterRequest DTO receive kora hocche
     @PostMapping("/register")
     public String registration(@Valid @ModelAttribute("user") RegisterRequest request, BindingResult bindingResult, Model model) {
 
@@ -57,13 +53,11 @@ public class AuthController {
             bindingResult.rejectValue("email", "error.user", "This email is already in use!");
         }
 
-        // Error thakle abar register page-e pathay dibe
         if (bindingResult.hasErrors()) {
             model.addAttribute("isLoggedIn", false);
             return "register";
         }
 
-        // 🔥 DTO theke data niye fresh User toiri kora hocche
         User newUser = new User();
         newUser.setName(request.name());
         newUser.setUsername(request.username());
@@ -71,7 +65,6 @@ public class AuthController {
         newUser.setPassword(request.password());
         newUser.setRole(Role.valueOf(request.role()));
 
-        // Tor existing service call (Ekhane password auto encode hoye jabe jodi tor service e kora thake)
         userService.registerUser(newUser);
 
         return "redirect:/login?registered";

@@ -1,7 +1,7 @@
 package com.momin.fydp_sync.controller;
 
-import com.momin.fydp_sync.model.Project;
-import com.momin.fydp_sync.model.User;
+import com.momin.fydp_sync.entity.Project;
+import com.momin.fydp_sync.entity.User;
 import com.momin.fydp_sync.repository.ProjectRepository;
 import com.momin.fydp_sync.service.UserService;
 import lombok.RequiredArgsConstructor;

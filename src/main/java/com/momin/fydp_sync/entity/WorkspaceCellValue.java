@@ -1,4 +1,4 @@
-package com.momin.fydp_sync.model;
+package com.momin.fydp_sync.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

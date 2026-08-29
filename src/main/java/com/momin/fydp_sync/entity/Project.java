@@ -1,5 +1,6 @@
-package com.momin.fydp_sync.model;
+package com.momin.fydp_sync.entity;
 
+import com.momin.fydp_sync.enums.ProjectRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

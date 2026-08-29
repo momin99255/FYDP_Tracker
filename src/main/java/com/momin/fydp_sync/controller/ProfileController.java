@@ -1,7 +1,7 @@
 package com.momin.fydp_sync.controller;
 
-import com.momin.fydp_sync.model.User;
-import com.momin.fydp_sync.model.UserProfile;
+import com.momin.fydp_sync.entity.User;
+import com.momin.fydp_sync.entity.UserProfile;
 import com.momin.fydp_sync.repository.UserProfileRepository;
 import com.momin.fydp_sync.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -57,13 +57,9 @@ public class ProfileController {
         return "my-profile";
     }
 
-    // 🔥 Notun: onno kono user-er profile dekha (read-only)
-    // Note: "/edit" already thakar karone Spring eta literal path hisebe age match kore,
-    // tai "/profile/edit" ei method-e ashbe na, upore-r editProfile()-e jabe.
     @GetMapping("/{username}")
     public String viewOtherProfile(@PathVariable String username, Model model, Principal principal) {
 
-        // Nijer username hole nijer profile-e pathiye dey (edit-e na, view-e)
         if (principal != null && principal.getName().equalsIgnoreCase(username)) {
             return "redirect:/profile";
         }
@@ -91,7 +87,6 @@ public class ProfileController {
                                 Principal principal,
                                 RedirectAttributes redirectAttributes) throws IOException {
 
-        // Principal theke niye user - tai keu URL-e kono trick koreo onno karo profile update korte parbe na
         User currentUser = userService.getUserByUsername(principal.getName());
         UserProfile profile = userService.getOrCreateProfile(currentUser);
 

@@ -1,6 +1,6 @@
-package com.momin.fydp_sync.model;
+package com.momin.fydp_sync.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.momin.fydp_sync.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

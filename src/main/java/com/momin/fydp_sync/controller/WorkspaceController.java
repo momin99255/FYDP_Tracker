@@ -1,9 +1,10 @@
 package com.momin.fydp_sync.controller;
 
-import com.momin.fydp_sync.model.*;
+import com.momin.fydp_sync.entity.*;
+import com.momin.fydp_sync.enums.ProjectRole;
+import com.momin.fydp_sync.enums.WorkspaceCategory;
 import com.momin.fydp_sync.repository.WorkspaceRepository;
 import com.momin.fydp_sync.service.UserService;
-import com.momin.fydp_sync.service.WorkspaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -23,7 +24,7 @@ import java.util.Map;
 public class WorkspaceController {
 
     private final WorkspaceRepository workspaceRepository;
-    private final WorkspaceService workspaceService;
+    private final com.momin.fydp_sync.service.WorkspaceService workspaceService;
     private final UserService userService;
 
     @GetMapping("/{id}")
@@ -123,7 +124,7 @@ public class WorkspaceController {
         return "redirect:/workspaces/" + workspaceId;
     }
 
-    // Column add: shudhu shei project-er CREATOR, ba je kono SUPERVISOR
+    // Column add:
     private boolean hasColumnPrivilege(Workspace workspace, User currentUser) {
         Project project = workspace.getProject();
         boolean isCreator = project.getMembers().stream()
@@ -132,7 +133,7 @@ public class WorkspaceController {
         return isCreator || isSupervisor;
     }
 
-    // Row edit/delete: shudhu je add korse she - creator howa lagbe na
+    // Row edit/delete:
     private void requireRowOwner(WorkspaceRow row, Principal principal) {
         if (!row.getAddedBy().getUsername().equalsIgnoreCase(principal.getName())) {
             throw new AccessDeniedException("You can only edit or delete entries you added yourself.");

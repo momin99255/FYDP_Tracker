@@ -1,81 +1,30 @@
 package com.momin.fydp_sync.service;
 
-import com.momin.fydp_sync.model.*;
-import com.momin.fydp_sync.repository.WorkspaceColumnRepository;
-import com.momin.fydp_sync.repository.WorkspaceRowRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.momin.fydp_sync.entity.User;
+import com.momin.fydp_sync.entity.Workspace;
+import com.momin.fydp_sync.entity.WorkspaceColumn;
+import com.momin.fydp_sync.entity.WorkspaceRow;
 
 import java.util.List;
 import java.util.Map;
 
-@Service
-@RequiredArgsConstructor
-public class WorkspaceService {
+public interface WorkspaceService {
 
-    private final WorkspaceColumnRepository columnRepository;
-    private final WorkspaceRowRepository rowRepository;
+    List<WorkspaceColumn> getColumns(Workspace workspace);
 
-    public List<WorkspaceColumn> getColumns(Workspace workspace) {
-        return columnRepository.findByWorkspaceOrderByIdAsc(workspace);
-    }
+    List<WorkspaceRow> getRows(Workspace workspace);
 
-    public List<WorkspaceRow> getRows(Workspace workspace) {
-        return rowRepository.findByWorkspaceOrderByCreatedAtDesc(workspace);
-    }
+    WorkspaceColumn addColumn(Workspace workspace, String name);
 
-    public WorkspaceColumn addColumn(Workspace workspace, String name) {
-        WorkspaceColumn column = new WorkspaceColumn();
-        column.setWorkspace(workspace);
-        column.setName(name);
-        return columnRepository.save(column);
-    }
+    WorkspaceRow addTableRow(Workspace workspace, User addedBy, Map<Long, String> cellValuesByColumnId, List<WorkspaceColumn> columns);
 
-    // TRAIN_MODEL / LITERATURE_REVIEW - column-wise value diye notun row
-    public WorkspaceRow addTableRow(Workspace workspace, User addedBy, Map<Long, String> cellValuesByColumnId, List<WorkspaceColumn> columns) {
-        WorkspaceRow row = new WorkspaceRow();
-        row.setWorkspace(workspace);
-        row.setAddedBy(addedBy);
-        row = rowRepository.save(row);
+    WorkspaceRow addSimpleRow(Workspace workspace, User addedBy, String content);
 
-        for (WorkspaceColumn column : columns) {
-            String val = cellValuesByColumnId.get(column.getId());
-            WorkspaceCellValue cell = new WorkspaceCellValue();
-            cell.setRow(row);
-            cell.setColumn(column);
-            cell.setValue(val != null ? val : "");
-            row.getCellValues().add(cell);
-        }
-        return rowRepository.save(row);
-    }
+    WorkspaceRow getRow(Long rowId);
 
-    // NOTES / LINKS - shudhu free text entry
-    public WorkspaceRow addSimpleRow(Workspace workspace, User addedBy, String content) {
-        WorkspaceRow row = new WorkspaceRow();
-        row.setWorkspace(workspace);
-        row.setAddedBy(addedBy);
-        row.setContent(content);
-        return rowRepository.save(row);
-    }
+    void updateTableRow(WorkspaceRow row, Map<Long, String> cellValuesByColumnId);
 
-    public WorkspaceRow getRow(Long rowId) {
-        return rowRepository.findById(rowId).orElseThrow();
-    }
+    void updateSimpleRow(WorkspaceRow row, String content);
 
-    public void updateTableRow(WorkspaceRow row, Map<Long, String> cellValuesByColumnId) {
-        for (WorkspaceCellValue cell : row.getCellValues()) {
-            String val = cellValuesByColumnId.get(cell.getColumn().getId());
-            if (val != null) cell.setValue(val);
-        }
-        rowRepository.save(row);
-    }
-
-    public void updateSimpleRow(WorkspaceRow row, String content) {
-        row.setContent(content);
-        rowRepository.save(row);
-    }
-
-    public void deleteRow(Long rowId) {
-        rowRepository.deleteById(rowId);
-    }
+    void deleteRow(Long rowId);
 }
