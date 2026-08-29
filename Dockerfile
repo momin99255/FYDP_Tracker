@@ -1,13 +1,21 @@
-# Build stage using standard maven and openjdk 25
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-26 AS build
+
 WORKDIR /app
+
 COPY pom.xml .
 COPY src ./src
+
+RUN java -version
+RUN mvn -version
+
 RUN mvn clean package -DskipTests
 
-# Run stage with Java 25 runtime
-FROM eclipse-temurin:25-jdk-alpine
+FROM eclipse-temurin:26-jre
+
 WORKDIR /app
+
 COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
