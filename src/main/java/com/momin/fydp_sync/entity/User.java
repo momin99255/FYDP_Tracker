@@ -32,7 +32,4 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-//    @JsonIgnore
-//    @OneToMany(mappedBy = "creator")
-//    private List<Project> projects = new ArrayList<>();
 }

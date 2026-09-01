@@ -1,5 +1,7 @@
 package com.momin.fydp_sync.controller;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.momin.fydp_sync.entity.User;
 import com.momin.fydp_sync.entity.UserProfile;
 import com.momin.fydp_sync.enums.Designation;
@@ -8,17 +10,13 @@ import com.momin.fydp_sync.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.security.Principal;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/profile")
@@ -27,8 +25,7 @@ public class ProfileController {
 
     private final UserService userService;
     private final UserProfileRepository userProfileRepository;
-
-    private static final String UPLOAD_DIR = "uploads/profile-pics/";
+    private final Cloudinary cloudinary;
 
     @GetMapping
     public String viewProfile(Model model, Principal principal) {
@@ -97,19 +94,12 @@ public class ProfileController {
         profile.setDesignation(designation);
 
         if (file != null && !file.isEmpty()) {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String original = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "photo");
-            String ext = original.contains(".") ? original.substring(original.lastIndexOf('.')) : "";
-            String filename = "user-" + currentUser.getId() + "-" + System.currentTimeMillis() + ext;
-
-            Path target = uploadPath.resolve(filename);
-            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
-            profile.setProfilePicture("/uploads/profile-pics/" + filename);
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap("folder", "fydp-sync/profile-pics")
+            );
+            String secureUrl = (String) uploadResult.get("secure_url");
+            profile.setProfilePicture(secureUrl);
         }
 
         userProfileRepository.save(profile);

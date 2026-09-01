@@ -21,7 +21,6 @@ import java.security.Principal;
 public class AuthController {
 
     private final UserService userService;
-    private final ProjectRepository projectRepository;
 
     @GetMapping("/")
     public String home() {
