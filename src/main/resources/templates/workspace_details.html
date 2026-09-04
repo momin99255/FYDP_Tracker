@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${workspace.title} + ' - FYDP Sync'">Workspace - FYDP Sync</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -11,10 +12,27 @@
         .add-entry-scroll { max-height: 50vh; overflow-y: auto; padding-right: 6px; }
         .add-entry-scroll::-webkit-scrollbar { width: 6px; }
         .add-entry-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-        .sticky-panel { position: sticky; top: 90px; }
+
+        .sticky-panel { position: static; }
+        @media (min-width: 992px) {
+            .sticky-panel { position: sticky; top: 90px; }
+        }
+
         .add-column-box {
             background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px;
             padding: 10px 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+        @media (min-width: 992px) {
+            .add-column-box { width: auto; }
+        }
+        .add-column-box input { width: 100% !important; }
+        @media (min-width: 992px) {
+            .add-column-box input { width: 200px !important; }
+        }
+
+        @media (max-width: 767.98px) {
+            .container-fluid { padding-left: 1rem; padding-right: 1rem; }
         }
     </style>
 </head>
@@ -22,32 +40,28 @@
 
 <div th:replace="~{fragments/navbar :: navbar(page='project')}"></div>
 
-<div class="container-fluid px-4 mt-3 mb-5">
+<div class="container-fluid px-3 px-lg-4 mt-3 mb-5">
 
-    <!-- ================= TOP HEADER: add column | title | go to project ================= -->
+    <!-- ================= TOP HEADER ================= -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
 
-        <!-- Left Side: Add Column Form -->
-        <form th:if="${isTableType and hasPrivilege}" th:action="@{/workspaces/{id}/add-column(id=${workspace.id})}" method="post" class="add-column-box d-flex align-items-end gap-2">
-            <div>
-                <label class="form-label small fw-bold text-muted mb-1">New Column</label>
-                <input type="text" name="name" class="form-control" placeholder="e.g. Recall" required style="width:200px;">
-            </div>
-            <button type="submit" class="btn btn-dark fw-bold px-4">➕ Add Column</button>
-        </form>
-        <!-- spacer so the header stays balanced when there's no add-column form -->
-        <div th:unless="${isTableType and hasPrivilege}" style="width:1px;"></div>
+        <a th:href="@{/projects/{id}(id=${workspace.project.id})}" class="btn btn-black-dash nav-btn fw-bold px-4 py-2">&larr; Go to Project</a>
 
-        <!-- Center: Title and Category -->
-        <div class="text-center">
+        <div class="text-center flex-grow-1 order-first order-lg-0" style="min-width: 200px;">
             <h3 class="fw-bold text-dark mb-1" th:text="${workspace.title}">Workspace Title</h3>
             <span class="badge bg-secondary px-3 py-2" th:text="${workspace.category}">CATEGORY</span>
         </div>
 
-        <!-- Right Side: Go to Project Button -->
-        <a th:href="@{/projects/{id}(id=${workspace.project.id})}" class="btn btn-black-dash nav-btn fw-bold px-4 py-2">Go to Project &rarr;</a>
-
+        <form th:if="${isTableType and hasPrivilege}" th:action="@{/workspaces/{id}/add-column(id=${workspace.id})}" method="post" class="add-column-box d-flex flex-column flex-sm-row align-items-stretch align-items-sm-end gap-2">
+            <div class="flex-grow-1">
+                <label class="form-label small fw-bold text-muted mb-1">New Column</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Recall" required>
+            </div>
+            <button type="submit" class="btn btn-dark fw-bold px-4 text-nowrap">➕ Add Column</button>
+        </form>
+        <div th:unless="${isTableType and hasPrivilege}" class="d-none d-lg-block" style="width:1px;"></div>
     </div>
+
     <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger shadow-sm" th:text="${errorMessage}"></div>
 
@@ -86,8 +100,8 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-dark">
                         <tr>
-                            <th th:each="col : ${columns}" th:text="${col.name}" class="py-3">Column</th>
-                            <th class="py-3">Added By</th>
+                            <th th:each="col : ${columns}" th:text="${col.name}" class="py-3 text-nowrap">Column</th>
+                            <th class="py-3 text-nowrap">Added By</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -95,8 +109,8 @@
                             th:with="isOwner=${row.addedBy.username == currentUser.username}"
                             th:classappend="${isOwner} ? 'row-clickable' : ''"
                             th:attr="data-bs-toggle=${isOwner} ? 'modal' : null, data-bs-target=${isOwner} ? '#editRow' + ${row.id} : null">
-                            <td th:each="col : ${columns}" th:text="${row.getValueForColumn(col.id)}"></td>
-                            <td><span class="badge bg-secondary" th:text="${row.addedBy.name}">Name</span></td>
+                            <td th:each="col : ${columns}" th:text="${row.getValueForColumn(col.id)}" class="text-nowrap"></td>
+                            <td class="text-nowrap"><span class="badge bg-secondary" th:text="${row.addedBy.name}">Name</span></td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(rows)}">
                             <td th:attr="colspan=${#lists.size(columns) + 1}" class="text-center text-muted py-4">No entries yet. Add the first one from the left panel!</td>
@@ -107,10 +121,9 @@
             </div>
         </div>
 
-        <!-- Edit modals - shudhu nijer add kora row-er jonno render hobe -->
         <th:block th:each="row : ${rows}" th:if="${row.addedBy.username == currentUser.username}">
             <div class="modal fade" th:id="'editRow' + ${row.id}" tabindex="-1">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">Edit Entry</h5>
@@ -165,7 +178,7 @@
                          th:classappend="${isOwner} ? 'row-clickable' : ''"
                          th:attr="data-bs-toggle=${isOwner} ? 'modal' : null, data-bs-target=${isOwner} ? '#editRow' + ${row.id} : null"
                          class="list-group-item p-3 mb-2 border rounded-3">
-                        <p class="mb-1" th:text="${row.content}">Content</p>
+                        <p class="mb-1" style="word-break: break-word;" th:text="${row.content}">Content</p>
                         <small class="text-muted">Added by <span th:text="${row.addedBy.name}">Name</span> ·
                             <span th:text="${#temporals.format(row.createdAt, 'dd MMM yyyy')}">Date</span></small>
                     </div>
@@ -175,7 +188,7 @@
 
         <th:block th:each="row : ${rows}" th:if="${row.addedBy.username == currentUser.username}">
             <div class="modal fade" th:id="'editRow' + ${row.id}" tabindex="-1">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">Edit Entry</h5>
