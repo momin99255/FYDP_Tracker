@@ -14,57 +14,72 @@
         .search-box:focus { background-color: #fff; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
     </style>
 
-    <nav class="navbar navbar-expand-lg fs-navbar sticky-top py-3 bg-white shadow-sm border-bottom">
-        <div class="container-fluid px-4">
+    <nav class="navbar navbar-expand-lg fs-navbar sticky-top py-2 py-md-3 bg-white shadow-sm border-bottom">
+        <div class="container-fluid px-2 px-md-4">
 
-            <button sec:authorize="isAuthenticated()" class="btn btn-light me-3 border shadow-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
-                <span class="navbar-toggler-icon"></span>
+            <!-- Toggle Button (Adjusted margin for mobile) -->
+            <button sec:authorize="isAuthenticated()" class="btn btn-light me-2 me-md-3 border shadow-sm px-2 px-md-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                <span class="navbar-toggler-icon" style="width: 1.2em; height: 1.2em;"></span>
             </button>
 
-            <a class="navbar-brand fs-brand fs-4 fw-bold text-primary" th:href="@{/dashboard}">⚡ FYDP Sync</a>
+            <!-- Brand Logo (Responsive font size) -->
+            <a class="navbar-brand fs-brand fs-5 fs-md-4 fw-bold text-primary text-nowrap m-0" th:href="@{/dashboard}">⚡ FYDP Sync</a>
 
-            <!-- ================= DYNAMIC SEARCH & FILTER BAR ================= -->
+            <!-- ================= RIGHT SIDE WRAPPER (Auto pushes to right) ================= -->
+            <div class="ms-auto d-flex align-items-center gap-2 gap-md-3">
 
-            <!-- Dashboard Search & Filter -->
-            <div th:if="${page == 'dashboard'}" class="ms-auto d-none d-md-flex align-items-center gap-3">
-                <input type="text" id="dashboardSearch" class="search-box" placeholder="🔍 Search projects..." style="width: 250px;">
-                <div class="form-check form-switch d-flex align-items-center gap-2 mb-0">
-                    <input class="form-check-input mt-0" type="checkbox" id="myProjectsFilter" style="cursor: pointer;">
-                    <label class="form-check-label small fw-bold text-muted mb-0" for="myProjectsFilter" style="cursor: pointer;">My Projects</label>
+                <!-- Dashboard Search & Filter -->
+                <div th:if="${page == 'dashboard'}" class="d-none d-lg-flex align-items-center gap-3">
+                    <input type="text" id="dashboardSearch" class="search-box" placeholder="🔍 Search projects..." style="width: 250px;">
+                    <div class="form-check form-switch d-flex align-items-center gap-2 mb-0">
+                        <input class="form-check-input mt-0" type="checkbox" id="myProjectsFilter" style="cursor: pointer;">
+                        <label class="form-check-label small fw-bold text-muted mb-0" for="myProjectsFilter" style="cursor: pointer;">My Projects</label>
+                    </div>
                 </div>
+
+                <!-- Project Workspace Search & Filter -->
+                <div th:if="${page == 'project'}" class="d-none d-lg-flex align-items-center gap-2">
+                    <input type="text" id="workspaceSearch" class="search-box" placeholder="🔍 Search workspaces..." style="width: 200px;">
+                    <select id="categoryFilter" class="form-select search-box fw-bold text-muted" style="width: 160px; cursor: pointer;">
+                        <option value="ALL">All Categories</option>
+                        <option value="TRAIN_MODEL">Train Model</option>
+                        <option value="LITERATURE_REVIEW">Literature Review</option>
+                        <option value="NOTES">Notes</option>
+                        <option value="LINKS">Links</option>
+                    </select>
+                </div>
+
+                <!-- Empty Spacer for pages without search -->
+                <div class="d-none d-lg-block" th:if="${page != 'dashboard' and page != 'project'}" style="width: 250px;"></div>
+
+
+                <!-- ================= BUTTONS ================= -->
+                <!-- Anonymous Users -->
+                <div class="d-flex align-items-center gap-2 gap-md-3" sec:authorize="isAnonymous()">
+                    <a class="btn btn-outline-dark fw-bold px-3 px-md-4 py-1 py-md-2 nav-btn text-nowrap" th:href="@{/login}">Login</a>
+                    <a class="btn btn-primary fw-bold px-3 px-md-4 py-1 py-md-2 nav-btn text-nowrap" th:href="@{/register}">Register</a>
+                </div>
+
+                <!-- Authenticated Users -->
+                <div class="d-flex align-items-center gap-2 gap-md-3" sec:authorize="isAuthenticated()">
+                    <a th:if="${page != 'dashboard'}" class="btn btn-black-dash fw-bold px-2 px-md-4 py-1 py-md-2 nav-btn text-nowrap" th:href="@{/dashboard}">
+                        <span class="d-none d-sm-inline">📊 Dashboard</span>
+                        <span class="d-inline d-sm-none">📊</span>
+                    </a>
+
+                    <form th:if="${page != 'project'}" th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-danger fw-bold px-2 px-md-4 py-1 py-md-2 nav-btn text-nowrap">
+                            <span class="d-none d-sm-inline">🚪 Logout</span>
+                            <span class="d-inline d-sm-none">🚪</span>
+                        </button>
+                    </form>
+                </div>
+
             </div>
-
-            <!-- Project Workspace Search & Filter -->
-            <div th:if="${page == 'project'}" class="ms-auto d-none d-md-flex align-items-center gap-2">
-                <input type="text" id="workspaceSearch" class="search-box" placeholder="🔍 Search workspaces..." style="width: 200px;">
-                <select id="categoryFilter" class="form-select search-box fw-bold text-muted" style="width: 160px; cursor: pointer;">
-                    <option value="ALL">All Categories</option>
-                    <option value="TRAIN_MODEL">Train Model</option>
-                    <option value="LITERATURE_REVIEW">Literature Review</option>
-                    <option value="NOTES">Notes</option>
-                    <option value="LINKS">Links</option>
-                </select>
-            </div>
-
-            <div class="ms-auto d-none d-md-block" th:if="${page != 'dashboard' and page != 'project'}" style="width: 300px;"></div>
-
-            <!-- ================= BUTTONS ================= -->
-            <div class="ms-4 d-flex align-items-center gap-3" sec:authorize="isAnonymous()">
-                <a class="btn btn-outline-dark fw-bold px-4 py-2 nav-btn" th:href="@{/login}">Login</a>
-                <a class="btn btn-primary fw-bold px-4 py-2 nav-btn" th:href="@{/register}">Register</a>
-            </div>
-
-            <div class="ms-4 d-flex align-items-center gap-3" sec:authorize="isAuthenticated()">
-                <a th:if="${page != 'dashboard'}" class="btn btn-black-dash fw-bold px-4 py-2 nav-btn" th:href="@{/dashboard}">📊 Dashboard</a>
-                <form th:if="${page != 'project'}" th:action="@{/logout}" method="post" class="m-0">
-                    <button type="submit" class="btn btn-danger fw-bold px-4 py-2 nav-btn">🚪 Logout</button>
-                </form>
-            </div>
-
         </div>
     </nav>
 
-    <!-- LEFT SLIDER MENU -->
+    <!-- LEFT SLIDER MENU (Remains Unchanged) -->
     <div sec:authorize="isAuthenticated()" class="offcanvas offcanvas-start shadow" tabindex="-1" id="sidebarMenu" style="width: 280px;">
         <div class="offcanvas-header border-bottom bg-light">
             <h5 class="offcanvas-title fw-bold text-primary">⚡ Menu</h5>
@@ -95,8 +110,7 @@
         </div>
     </div>
 
-
-    <!-- Global page-loader -->
+    <!-- Global page-loader (Remains Unchanged) -->
     <div id="globalLoader" class="d-none" style="position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(2px);">
         <div class="spinner-border text-light" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
         <p class="text-white fw-bold mt-3 mb-0">Loading...</p>

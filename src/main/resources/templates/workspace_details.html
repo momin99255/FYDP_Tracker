@@ -38,19 +38,12 @@
 </head>
 <body>
 
-<div th:replace="~{fragments/navbar :: navbar(page='project')}"></div>
+<div th:replace="~{fragments/navbar :: navbar(page='workspace_details')}"></div>
 
 <div class="container-fluid px-3 px-lg-4 mt-3 mb-5">
 
     <!-- ================= TOP HEADER ================= -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-
-        <a th:href="@{/projects/{id}(id=${workspace.project.id})}" class="btn btn-black-dash nav-btn fw-bold px-4 py-2">&larr; Go to Project</a>
-
-        <div class="text-center flex-grow-1 order-first order-lg-0" style="min-width: 200px;">
-            <h3 class="fw-bold text-dark mb-1" th:text="${workspace.title}">Workspace Title</h3>
-            <span class="badge bg-secondary px-3 py-2" th:text="${workspace.category}">CATEGORY</span>
-        </div>
 
         <form th:if="${isTableType and hasPrivilege}" th:action="@{/workspaces/{id}/add-column(id=${workspace.id})}" method="post" class="add-column-box d-flex flex-column flex-sm-row align-items-stretch align-items-sm-end gap-2">
             <div class="flex-grow-1">
@@ -60,6 +53,14 @@
             <button type="submit" class="btn btn-dark fw-bold px-4 text-nowrap">➕ Add Column</button>
         </form>
         <div th:unless="${isTableType and hasPrivilege}" class="d-none d-lg-block" style="width:1px;"></div>
+
+        <div class="text-center flex-grow-1 order-first order-lg-0" style="min-width: 200px;">
+            <h3 class="fw-bold text-dark mb-1" th:text="${workspace.title}">Workspace Title</h3>
+            <span class="badge bg-secondary px-3 py-2" th:text="${workspace.category}">CATEGORY</span>
+        </div>
+
+        <a th:href="@{/projects/{id}(id=${workspace.project.id})}" class="btn btn-black-dash nav-btn fw-bold px-4 py-2">&larr; Go to Project</a>
+
     </div>
 
     <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
