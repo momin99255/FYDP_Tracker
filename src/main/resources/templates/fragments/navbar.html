@@ -21,7 +21,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <a class="navbar-brand fs-brand fs-4 fw-bold text-primary" th:href="@{/}">⚡ FYDP Sync</a>
+            <a class="navbar-brand fs-brand fs-4 fw-bold text-primary" th:href="@{/dashboard}">⚡ FYDP Sync</a>
 
             <!-- ================= DYNAMIC SEARCH & FILTER BAR ================= -->
 
@@ -55,7 +55,7 @@
             </div>
 
             <div class="ms-4 d-flex align-items-center gap-3" sec:authorize="isAuthenticated()">
-                <a th:if="${page != 'dashboard'}" class="btn btn-black-dash fw-bold px-4 py-2 nav-btn" th:href="@{/student/dashboard}">📊 Dashboard</a>
+                <a th:if="${page != 'dashboard'}" class="btn btn-black-dash fw-bold px-4 py-2 nav-btn" th:href="@{/dashboard}">📊 Dashboard</a>
                 <form th:if="${page != 'project'}" th:action="@{/logout}" method="post" class="m-0">
                     <button type="submit" class="btn btn-danger fw-bold px-4 py-2 nav-btn">🚪 Logout</button>
                 </form>
