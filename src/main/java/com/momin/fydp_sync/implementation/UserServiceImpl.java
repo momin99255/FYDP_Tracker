@@ -6,6 +6,7 @@ import com.momin.fydp_sync.repository.UserProfileRepository;
 import com.momin.fydp_sync.repository.UserRepository;
 import com.momin.fydp_sync.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "#username")
     public User getUserByUsername(String username) {
         return userRepository.findByUsernameOrEmail(username, username).orElse(null);
     }
@@ -49,6 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "profilePictures", key = "#user.username")
     public String getProfilePictureUrl(User user) {
         return userProfileRepository.findByUser(user)
                 .map(UserProfile::getProfilePicture)
